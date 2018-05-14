@@ -7,13 +7,6 @@ import (
 	"github.com/dghubble/oauth1"
 )
 
-var (
-	consumerKey    = os.Getenv("CONSUMER_KEY")
-	consumerSecret = os.Getenv("CONSUMER_SECRET")
-	accessToken    = os.Getenv("ACCESS_TOKEN")
-	accessSecret   = os.Getenv("ACCESS_SECRET")
-)
-
 // TwitterTrendsSvc accesses twitter
 type TwitterTrendsSvc interface {
 	Trends() ([]twitter.Trend, error)
@@ -47,7 +40,12 @@ func NewTwitterTrendsSvc(woeid int64) TwitterTrendsSvc {
 }
 
 func newClient() *twitter.Client {
-	config := oauth1.NewConfig(consumerKey, consumerSecret) // TODO: change to os.Getenv calls
+	consumerKey := os.Getenv("CONSUMER_KEY")
+	consumerSecret := os.Getenv("CONSUMER_SECRET")
+	accessToken := os.Getenv("ACCESS_TOKEN")
+	accessSecret := os.Getenv("ACCESS_SECRET")
+
+	config := oauth1.NewConfig(consumerKey, consumerSecret)
 	token := oauth1.NewToken(accessToken, accessSecret)
 	client := twitter.NewClient(config.Client(oauth1.NoContext, token))
 	return client
