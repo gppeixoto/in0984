@@ -10,12 +10,15 @@ import (
 // TwitterTrendsSvc accesses twitter
 type TwitterTrendsSvc interface {
 	Trends() ([]twitter.Trend, error)
+	Close()
 }
 
 type twitterTrends struct {
 	client *twitter.Client
 	woeid  int64
 }
+
+func (tt *twitterTrends) Close() {}
 
 func (tt *twitterTrends) Trends() ([]twitter.Trend, error) {
 	ts, _, err := tt.client.Trends.Place(tt.woeid, nil)
@@ -62,6 +65,8 @@ func (ft *fakeTwitter) Trends() ([]twitter.Trend, error) {
 		},
 	}, nil
 }
+
+func (ft *fakeTwitter) Close() {}
 
 // FakeTwitterTrendsSvc does the boomshakalaka
 func FakeTwitterTrendsSvc(woeid int64) TwitterTrendsSvc {
