@@ -15,12 +15,18 @@ func main() {
 	}
 
 	twitter := NewTwitterTrendsSvc(23424768) // Brazil WOEID
+	defer twitter.Close()
+
 	trends, err := twitter.Trends()
 	if err != nil {
 		panic(err)
 	}
-
 	for _, trend := range trends {
 		fmt.Printf("%+v\n", trend)
 	}
+
+	s := NewServer()
+	defer s.Close()
+
+	s.Start(8080)
 }
