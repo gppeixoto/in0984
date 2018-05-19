@@ -93,6 +93,7 @@ func getTopicTokens(str string) (tokens map[string]bool) {
 	ss = strings.ToLower(ss)
 
 	for _, token := range strings.Split(ss, "_") {
+		token = strings.TrimSpace(token)
 		tokens[token] = true
 	}
 
@@ -102,6 +103,7 @@ func getTopicTokens(str string) (tokens map[string]bool) {
 func getTextTokens(str string) (tokens map[string]bool) {
 	tokens = make(map[string]bool)
 	for _, token := range strings.Split(str, " ") { // TODO: use proper tokenization
+		token = strings.TrimSpace(token)
 		if len(token) > 2 {
 			tokens[token] = true // instead of splitting on whitespace
 		}
