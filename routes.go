@@ -30,7 +30,8 @@ func (s *server) analyzerHandler() echo.HandlerFunc {
 		// get data request
 		t := new(TextData)
 		if err := c.Bind(t); err != nil {
-			return c.JSON(http.StatusBadRequest,
+			return echo.NewHTTPError(
+				http.StatusBadRequest,
 				fmt.Sprintf("request should look like %s", fakeReq),
 			)
 		}
