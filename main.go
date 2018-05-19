@@ -2,6 +2,8 @@ package main
 
 import (
 	"log"
+	"os"
+	"strconv"
 
 	"github.com/joho/godotenv"
 )
@@ -16,5 +18,6 @@ func main() {
 	s := NewServer()
 	defer s.Close()
 
-	s.Start(8080)
+	port, _ := strconv.Atoi(os.Getenv("PORT"))
+	s.Start(port)
 }
