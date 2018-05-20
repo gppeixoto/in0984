@@ -40,10 +40,18 @@ func (s *server) analyzerHandler() echo.HandlerFunc {
 				http.StatusBadRequest,
 				fmt.Sprintf("request should look like %s", fakeReq))
 		}
-		r, err := analyze(t, trends)
+		match, err := matchAndGetQuery(t, trends)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusNotFound, err.Error())
 		}
+		tweets, err := s.twitter.TweetsFor(match.query)
+		if err != nil {
+			//TODO: check error msg
+			return echo.NewHTTPError(http.StatusNotFound, err.Error())
+		}
+		// pass tweets to sentiment analyzer
+		score := sentimentScore(tweets)
+		r := &Response{Name: match.name, Score: score, TweetVolume: match.volume}
 		return c.JSON(http.StatusOK, r)
 	}
 }
