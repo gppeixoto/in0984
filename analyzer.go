@@ -7,19 +7,17 @@ import (
 	"github.com/dghubble/go-twitter/twitter"
 )
 
-func analyze(t *TextData, trends []twitter.Trend) (*Response, error) {
+func matchAndGetQuery(t *TextData, trends []twitter.Trend) (*Match, error) {
 	textTokens := getTextTokens(t.Text)
 	for _, trend := range trends {
 		topicTokens := getTopicTokens(trend.Name)
-		if matchedToken, ok := match(textTokens, topicTokens); ok {
-			res := &Response{
-				Text: fmt.Sprintf(
-					"match found %+v matching with \"%v\"",
-					trend,
-					matchedToken,
-				),
+		if _, ok := match(textTokens, topicTokens); ok {
+			m := &Match{
+				query:  trend.Query,
+				name:   trend.Name,
+				volume: trend.TweetVolume,
 			}
-			return res, nil
+			return m, nil
 		}
 	}
 	return nil, fmt.Errorf(fmt.Sprintf("did not find a match for %v", t.Text))
