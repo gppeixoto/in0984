@@ -11,6 +11,7 @@ import (
 type TwitterTrendsSvc interface {
 	Trends() ([]twitter.Trend, error)
 	Close()
+	TweetsFor(string) ([]string, error)
 }
 
 type twitterTrends struct {
@@ -34,6 +35,22 @@ func (tt *twitterTrends) Trends() ([]twitter.Trend, error) {
 	return trends, nil
 }
 
+func (tt *twitterTrends) TweetsFor(query string) ([]string, error) {
+	var tweets []string
+	search, _, err := tt.client.Search.Tweets(&twitter.SearchTweetParams{
+		Query: query,
+		Count: 100,
+		Lang:  "pt",
+	})
+	if err != nil {
+		return nil, err
+	}
+	for _, tweet := range search.Statuses {
+		tweets = append(tweets, tweet.Text)
+	}
+	return tweets, nil
+}
+
 // NewTwitterTrendsSvc creates a new TwitterTrendsSvc
 func NewTwitterTrendsSvc(woeid int64) TwitterTrendsSvc {
 	return &twitterTrends{
@@ -52,23 +69,4 @@ func newClient() *twitter.Client {
 	token := oauth1.NewToken(accessToken, accessSecret)
 	client := twitter.NewClient(config.Client(oauth1.NoContext, token))
 	return client
-}
-
-type fakeTwitter struct{}
-
-func (ft *fakeTwitter) Trends() ([]twitter.Trend, error) {
-	return []twitter.Trend{
-		twitter.Trend{
-			Name:        "chewbacca",
-			URL:         "chewbac.ca",
-			TweetVolume: 42,
-		},
-	}, nil
-}
-
-func (ft *fakeTwitter) Close() {}
-
-// FakeTwitterTrendsSvc does the boomshakalaka
-func FakeTwitterTrendsSvc(woeid int64) TwitterTrendsSvc {
-	return &fakeTwitter{}
 }
