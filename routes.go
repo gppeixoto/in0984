@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
-	"strings"
 
 	"github.com/labstack/echo"
 )
@@ -27,37 +26,25 @@ type server struct {
 
 func (s *server) analyzerHandler() echo.HandlerFunc {
 	return func(c echo.Context) error {
+		// try twitter connection
+		trends, err := s.twitter.Trends()
+		if err != nil {
+			echo.NewHTTPError(
+				http.StatusInternalServerError,
+				"unable to reach twitter")
+		}
 		// get data request
 		t := new(TextData)
 		if err := c.Bind(t); err != nil {
 			return echo.NewHTTPError(
 				http.StatusBadRequest,
-				fmt.Sprintf("request should look like %s", fakeReq),
-			)
+				fmt.Sprintf("request should look like %s", fakeReq))
 		}
-		textTokens := getTextTokens(t.Text)
-
-		// prepare
-		trends, err := s.twitter.Trends()
+		r, err := analyze(t, trends)
 		if err != nil {
-			echo.NewHTTPError(http.StatusInternalServerError, "unable to reach twitter")
+			return echo.NewHTTPError(http.StatusNotFound, err.Error())
 		}
-		for _, trend := range trends {
-			topicTokens := getTopicTokens(trend.Name)
-			if matchedToken, ok := match(textTokens, topicTokens); ok {
-				res := &Response{
-					Text: fmt.Sprintf("match found %+v matching with \"%v\"", trend, matchedToken),
-				}
-				return c.JSON(
-					http.StatusOK,
-					res,
-				)
-			}
-		}
-		return echo.NewHTTPError(
-			http.StatusNotFound,
-			fmt.Sprintf("did not find a match for %v", t.Text),
-		)
+		return c.JSON(http.StatusOK, r)
 	}
 }
 
@@ -80,42 +67,4 @@ func NewServer() Server {
 		server:  echo.New(),
 		twitter: NewTwitterTrendsSvc(23424768), // Brazil WOEID
 	}
-}
-
-func getTopicTokens(str string) (tokens map[string]bool) {
-	tokens = make(map[string]bool)
-	var ss string
-	if str[0] == '#' {
-		ss = str[1:len(str)]
-	}
-	ss = matchFirstCap.ReplaceAllString(str, "${1}_${2}")
-	ss = matchAllCap.ReplaceAllString(ss, "${1}_${2}")
-	ss = strings.ToLower(ss)
-
-	for _, token := range strings.Split(ss, "_") {
-		token = strings.TrimSpace(token)
-		tokens[token] = true
-	}
-
-	return
-}
-
-func getTextTokens(str string) (tokens map[string]bool) {
-	tokens = make(map[string]bool)
-	for _, token := range strings.Split(str, " ") { // TODO: use proper tokenization
-		token = strings.TrimSpace(token)
-		if len(token) > 2 {
-			tokens[token] = true // instead of splitting on whitespace
-		}
-	}
-	return
-}
-
-func match(one, other map[string]bool) (string, bool) {
-	for element := range one {
-		if other[element] {
-			return element, true
-		}
-	}
-	return "", false
 }
