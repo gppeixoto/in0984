@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -47,6 +46,10 @@ func (s *sentSvc) Score(corpus []string) (float64, float64) {
 		sentRes.DocumentSentiment.Magnitude
 }
 
+type params struct {
+	Key string `url:"key,omitempty"`
+}
+
 func NewSentSvc() SentSvc {
 	auth, ok := os.LookupEnv("NLP_API_KEY")
 	if !ok {
@@ -55,8 +58,8 @@ func NewSentSvc() SentSvc {
 	sling := sling.
 		New().
 		Set("Content-Type", "application/json; charset=utf-8").
-		Set("Authorization", fmt.Sprintf("Bearer %s", auth)).
-		Post(baseURL)
+		Post(baseURL).
+		QueryStruct(&params{Key: auth})
 
 	httpClient := http.Client{Timeout: time.Second * 10}
 	return &sentSvc{
