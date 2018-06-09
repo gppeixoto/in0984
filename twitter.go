@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net/http"
 	"os"
 
 	"github.com/dghubble/go-twitter/twitter"
@@ -23,7 +24,7 @@ func (tt *twitterTrends) Close() {}
 
 func (tt *twitterTrends) Trends() ([]twitter.Trend, error) {
 	ts, res, err := tt.client.Trends.Place(tt.woeid, nil)
-	if err != nil || res.StatusCode != 200 {
+	if err != nil || res.StatusCode != http.StatusOK {
 		return nil, err
 	}
 	var trends []twitter.Trend

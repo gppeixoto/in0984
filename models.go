@@ -6,7 +6,8 @@ type TextData struct {
 
 type Response struct {
 	Name        string  `json:"name"`
-	Score       float32 `json:"score"`
+	Score       float64 `json:"sentiment_score"`
+	Magnitude   float64 `json:"sentiment_strength"`
 	TweetVolume int64   `json:"tweet_volume"`
 }
 
