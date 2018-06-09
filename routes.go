@@ -20,8 +20,9 @@ type Server interface {
 }
 
 type server struct {
-	server  *echo.Echo
-	twitter TwitterTrendsSvc
+	server    *echo.Echo
+	twitter   TwitterTrendsSvc
+	sentiment SentSvc
 }
 
 func (s *server) analyzerHandler() echo.HandlerFunc {
@@ -50,8 +51,12 @@ func (s *server) analyzerHandler() echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusNotFound, err.Error())
 		}
 		// pass tweets to sentiment analyzer
-		score := sentimentScore(tweets)
-		r := &Response{Name: match.name, Score: score, TweetVolume: match.volume}
+		score, magnitude := s.sentiment.Score(tweets)
+		r := &Response{
+			Name:        match.name,
+			Score:       score,
+			TweetVolume: match.volume,
+			Magnitude:   magnitude}
 		return c.JSON(http.StatusOK, r)
 	}
 }
@@ -72,7 +77,8 @@ func (s *server) Start(port int) {
 
 func NewServer() Server {
 	return &server{
-		server:  echo.New(),
-		twitter: NewTwitterTrendsSvc(23424768), // Brazil WOEID
+		server:    echo.New(),
+		twitter:   NewTwitterTrendsSvc(23424768), // Brazil WOEID
+		sentiment: NewSentSvc(),
 	}
 }
