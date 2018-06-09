@@ -22,8 +22,8 @@ type twitterTrends struct {
 func (tt *twitterTrends) Close() {}
 
 func (tt *twitterTrends) Trends() ([]twitter.Trend, error) {
-	ts, _, err := tt.client.Trends.Place(tt.woeid, nil)
-	if err != nil {
+	ts, res, err := tt.client.Trends.Place(tt.woeid, nil)
+	if err != nil || res.StatusCode != 200 {
 		return nil, err
 	}
 	var trends []twitter.Trend
@@ -68,5 +68,14 @@ func newClient() *twitter.Client {
 	config := oauth1.NewConfig(consumerKey, consumerSecret)
 	token := oauth1.NewToken(accessToken, accessSecret)
 	client := twitter.NewClient(config.Client(oauth1.NoContext, token))
+
+	// Tests connection and crashes app if there is bad auth data
+	_, _, err := client.Timelines.HomeTimeline(&twitter.HomeTimelineParams{
+		Count: 20,
+	})
+	if err != nil {
+		panic(err.Error())
+	}
+
 	return client
 }
