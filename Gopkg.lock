@@ -20,10 +20,10 @@
   version = "v0.4.0"
 
 [[projects]]
+  branch = "master"
   name = "github.com/dghubble/sling"
   packages = ["."]
-  revision = "eb56e89ac5088bebb12eef3cb4b293300f43608b"
-  version = "v1.1.0"
+  revision = "c519674860ff275e0ceb12caf5d87b31765c4e71"
 
 [[projects]]
   branch = "master"
@@ -94,6 +94,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "bd49e63a5d4d70399a49c1f91f233bb0c4dbd2be9ad52543c14f93a59961a8f9"
+  inputs-digest = "8dcca14834f38a5709eea9b6ca13971b7bd89d11915889393ac3d45242bcda0f"
   solver-name = "gps-cdcl"
   solver-version = 1
