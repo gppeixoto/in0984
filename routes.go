@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"net/http"
 	"regexp"
+	"strings"
 
 	"github.com/labstack/echo"
 )
@@ -14,6 +16,7 @@ var (
 	fakeReq       = "{\"text\": \"data\"}"
 )
 
+// Server is the main interface to implement a server
 type Server interface {
 	Start(port int)
 	Close()
@@ -53,10 +56,11 @@ func (s *server) analyzerHandler() echo.HandlerFunc {
 		// pass tweets to sentiment analyzer
 		score, magnitude := s.sentiment.Score(tweets)
 		r := &Response{
-			Name:        match.name,
-			Score:       score,
-			TweetVolume: match.volume,
-			Magnitude:   magnitude}
+			Name:         match.name,
+			Score:        score,
+			TweetVolume:  match.volume,
+			Magnitude:    magnitude,
+			SampleTweets: sampleTweets(tweets, t.TweetsSampleSize)}
 		return c.JSON(http.StatusOK, r)
 	}
 }
@@ -75,10 +79,35 @@ func (s *server) Start(port int) {
 	s.server.Logger.Fatal(s.server.Start(fmt.Sprintf(":%d", port)))
 }
 
+// NewServer creates a new app server
 func NewServer() Server {
 	return &server{
 		server:    echo.New(),
 		twitter:   NewTwitterTrendsSvc(23424768), // Brazil WOEID
 		sentiment: NewSentSvc(),
 	}
+}
+
+func sampleTweets(tweets []string, n int) []string {
+	n = min(n, 10)
+	tmp := make([]string, len(tweets))
+	copy(tmp, tweets)
+	for i := range tmp {
+		j := rand.Intn(i + 1)
+		tmp[i], tmp[j] = tmp[j], tmp[i]
+	}
+	var resp []string
+	for i := 0; i < len(tmp) && len(resp) < n; i++ {
+		if !strings.HasPrefix(tmp[i], "RT") {
+			resp = append(resp, tmp[i])
+		}
+	}
+	return resp
+}
+
+func min(x, y int) int {
+	if x < y {
+		return x
+	}
+	return y
 }
