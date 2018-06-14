@@ -7,12 +7,12 @@ import (
 	"github.com/dghubble/go-twitter/twitter"
 )
 
-func matchAndGetQuery(t *TextData, trends []twitter.Trend) (*Match, error) {
+func matchAndGetQuery(t *TextData, trends []twitter.Trend) (*trendingTopicMatch, error) {
 	textTokens := getTextTokens(t.Text)
 	for _, trend := range trends {
 		topicTokens := getTopicTokens(trend.Name)
 		if _, ok := match(textTokens, topicTokens); ok {
-			m := &Match{
+			m := &trendingTopicMatch{
 				query:  trend.Query,
 				name:   trend.Name,
 				volume: trend.TweetVolume,
