@@ -2,3 +2,5 @@ in0984
 *.env
 vendor/
 local
+
+data.json
