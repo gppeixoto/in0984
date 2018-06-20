@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/labstack/echo"
@@ -14,6 +15,7 @@ var (
 	matchFirstCap = regexp.MustCompile("(.)([A-Z][a-z]+)")
 	matchAllCap   = regexp.MustCompile("([a-z0-9])([A-Z])")
 	fakeReq       = "{\"text\": \"data\"}"
+	woeidParam    = "woeid"
 )
 
 // Server is the main interface to implement a server
@@ -28,12 +30,27 @@ type server struct {
 	sentiment SentSvc
 }
 
+func (s *server) trendingTopicsHandler() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		woeid, err := strconv.Atoi(c.Param(woeidParam))
+		if err != nil || woeid < 0 {
+			return echo.NewHTTPError(http.StatusBadRequest,
+				"param {woeid} should be a parsable, non negative int")
+		}
+		trends, err := s.twitter.Trends(woeid)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "error during processing")
+		}
+		return c.JSON(http.StatusOK, &Trends{Trends: trends})
+	}
+}
+
 func (s *server) analyzerHandler() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		// try twitter connection
-		trends, err := s.twitter.Trends()
+		trends, err := s.twitter.Trends(23424768) // Brazil WOEID
 		if err != nil {
-			echo.NewHTTPError(
+			return echo.NewHTTPError(
 				http.StatusInternalServerError,
 				"unable to reach twitter")
 		}
@@ -67,6 +84,7 @@ func (s *server) analyzerHandler() echo.HandlerFunc {
 
 func (s *server) registerRoutes() {
 	s.server.POST("/text", s.analyzerHandler())
+	s.server.GET("/tts/:woeid", s.trendingTopicsHandler())
 }
 
 func (s *server) Close() {
@@ -83,7 +101,7 @@ func (s *server) Start(port int) {
 func NewServer() Server {
 	return &server{
 		server:    echo.New(),
-		twitter:   NewTwitterTrendsSvc(23424768), // Brazil WOEID
+		twitter:   NewTwitterTrendsSvc(),
 		sentiment: NewSentSvc(),
 	}
 }

@@ -1,5 +1,9 @@
 package main
 
+import (
+	"github.com/dghubble/go-twitter/twitter"
+)
+
 // TextData defines model for api request
 type TextData struct {
 	Text             string `json:"text"`
@@ -19,4 +23,9 @@ type trendingTopicMatch struct {
 	query  string
 	name   string
 	volume int64
+}
+
+// Trends defines a response to /tts/:woeid endpoint
+type Trends struct {
+	Trends []twitter.Trend `json:"trends"`
 }
