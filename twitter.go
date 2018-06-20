@@ -10,20 +10,19 @@ import (
 
 // TwitterTrendsSvc accesses twitter
 type TwitterTrendsSvc interface {
-	Trends() ([]twitter.Trend, error)
+	Trends(woeid int) ([]twitter.Trend, error)
 	Close()
 	TweetsFor(string) ([]string, error)
 }
 
 type twitterTrends struct {
 	client *twitter.Client
-	woeid  int64
 }
 
 func (tt *twitterTrends) Close() {}
 
-func (tt *twitterTrends) Trends() ([]twitter.Trend, error) {
-	ts, res, err := tt.client.Trends.Place(tt.woeid, nil)
+func (tt *twitterTrends) Trends(woeid int) ([]twitter.Trend, error) {
+	ts, res, err := tt.client.Trends.Place(int64(woeid), nil)
 	if err != nil || res.StatusCode != http.StatusOK {
 		return nil, err
 	}
@@ -53,10 +52,9 @@ func (tt *twitterTrends) TweetsFor(query string) ([]string, error) {
 }
 
 // NewTwitterTrendsSvc creates a new TwitterTrendsSvc
-func NewTwitterTrendsSvc(woeid int64) TwitterTrendsSvc {
+func NewTwitterTrendsSvc() TwitterTrendsSvc {
 	return &twitterTrends{
 		client: newClient(),
-		woeid:  woeid,
 	}
 }
 
